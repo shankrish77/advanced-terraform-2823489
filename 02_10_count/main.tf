@@ -5,13 +5,18 @@ variable "aws_access_key" {}
 
 variable "aws_secret_key" {}
 
+variable "ssh_key_name" {}
+
+variable "private_key_path" {}
+
+variable "region" {
+  default = "us-east-1"
+}
+
 variable "iam_accounts" {
   type = set(string)
 }
 
-variable "region" {
-  default = "us-east-2"
-}
 
 variable "vpc_cidr" {
   default = "172.16.0.0/16"
@@ -19,6 +24,10 @@ variable "vpc_cidr" {
 
 variable "subnet1_cidr" {
   default = "172.16.0.0/24"
+}
+
+variable "deploy_environment" {
+  default = "DEV"
 }
 
 variable "environment_list" {
@@ -143,20 +152,42 @@ resource "aws_security_group" "sg-nodejs-instance" {
 }
 
 # INSTANCE
-resource "aws_instance" "nodejs1" {
-  //count = 4
+resource "aws_instance" "node_instances" {
+  count  = 4 //Create 4 EC2 instances
+  
+  ami                    = data.aws_ami.aws-linux.id
 
-  ami = data.aws_ami.aws-linux.id
-  instance_type = var.environment_instance_settings["PROD"].instance_type
-  subnet_id = aws_subnet.subnet1.id
+  instance_type         = var.environment_instance_type[var.deploy_environment] 
+  //instance_type          = var.environment_instance_type["DEV"]
+  //instance_type        = var.environment_instance_settings["PROD"].instance_type
+
+  subnet_id              = aws_subnet.subnet1.id
   vpc_security_group_ids = [aws_security_group.sg-nodejs-instance.id]
 
-  monitoring = var.environment_instance_settings["PROD"].monitoring
+ // monitoring             = var.environment_instance_settings["PROD"].monitoring
+  monitoring            = var.environment_instance_settings[var.deploy_environment].monitoring
 
-  tags = {Environment = var.environment_list[0]}
+  key_name               = var.ssh_key_name
+
+  connection {
+    type        = "ssh"
+    host        = self.public_ip
+    user        = "ec2-user"
+    private_key = file(var.private_key_path)
+  }
+
+
+  //tags = {Environment = var.environment_list[0]}
+  tags = {Environment = var.environment_map[var.deploy_environment]}
+
 }
 
+resource "aws_iam_user" "iam_users" {
+  for_each = var.iam_accounts
 
+  name = each.key
+
+}
 # //////////////////////////////
 # DATA
 # //////////////////////////////
@@ -186,5 +217,9 @@ data "aws_ami" "aws-linux" {
 # OUTPUT
 # //////////////////////////////
 output "instance-dns" {
-  value = aws_instance.nodejs1.public_dns
+  value = aws_instance.node_instances.*.public_dns //* is a splat variable
+}
+
+output "private-dns" {
+  value = aws_instance.node_instances.*.private_dns
 }

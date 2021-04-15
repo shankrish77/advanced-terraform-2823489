@@ -5,8 +5,12 @@ variable "aws_access_key" {}
 
 variable "aws_secret_key" {}
 
+variable "region" {
+  default = "us-east-1"
+}
+
 variable "bucket_name" {
-  default = "red30-tfstate"
+  default = "red30-tfstate-shan"
 }
 
 # //////////////////////////////
@@ -15,7 +19,7 @@ variable "bucket_name" {
 provider "aws" {
   access_key = var.aws_access_key
   secret_key = var.aws_secret_key
-  region = "us-east-2"
+  region     = var.region
 }
 
 # //////////////////////////////
@@ -46,7 +50,7 @@ resource "aws_s3_bucket" "red30-tfremotestate" {
             "Sid": "",
             "Effect": "Allow",
             "Principal": {
-                "AWS": "${data.aws_iam_user.terraform.arn}"
+	          "AWS": "${data.aws_iam_user.terraform.arn}"
             },
             "Action": "s3:*",
             "Resource": "arn:aws:s3:::${var.bucket_name}/*"
@@ -69,7 +73,7 @@ resource "aws_s3_bucket_public_access_block" "red30-tfremotestate" {
 # DYNAMODB TABLE
 # //////////////////////////////
 resource "aws_dynamodb_table" "tf_db_statelock" {
-  name           = "red30-tfstatelock"
+  name           = "red30-tfstatelock-shan"
   read_capacity  = 20
   write_capacity = 20
   hash_key       = "LockID"

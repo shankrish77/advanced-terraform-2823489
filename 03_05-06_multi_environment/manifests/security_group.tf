@@ -33,4 +33,6 @@ resource "aws_security_group" "sg_frontend" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  tags = var.env_instance_tags
+
 }

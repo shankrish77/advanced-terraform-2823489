@@ -14,5 +14,9 @@ module "ec2_cluster" {
   vpc_security_group_ids = [aws_security_group.sg_frontend.id]
   subnet_id              = module.vpc.public_subnets[1]
 
+  key_name               = var.ssh_key_name
+
+  user_data              = "ec2-user"
+
   tags = var.env_instance_tags
 }

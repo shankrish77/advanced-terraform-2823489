@@ -5,8 +5,12 @@ variable "aws_access_key" {}
 
 variable "aws_secret_key" {}
 
+variable "ssh_key_name" {}
+
+variable "private_key_path" {}
+
 variable "region" {
-  default = "us-east-2"
+  default = "us-east-1"
 }
 
 variable "vpc_cidr" {
@@ -15,6 +19,10 @@ variable "vpc_cidr" {
 
 variable "subnet1_cidr" {
   default = "172.16.0.0/24"
+}
+
+variable "deploy_environment" {
+  default = "DEV"
 }
 
 variable "environment_list" {
@@ -140,15 +148,30 @@ resource "aws_security_group" "sg-nodejs-instance" {
 
 # INSTANCE
 resource "aws_instance" "nodejs1" {
-  ami = data.aws_ami.aws-linux.id
-  instance_type = var.environment_instance_type["DEV"]
-  //instance_type = var.environment_instance_settings["PROD"].instance_type
-  subnet_id = aws_subnet.subnet1.id
+  ami                    = data.aws_ami.aws-linux.id
+
+  instance_type         = var.environment_instance_type[var.deploy_environment] 
+  //instance_type          = var.environment_instance_type["DEV"]
+  //instance_type        = var.environment_instance_settings["PROD"].instance_type
+
+  subnet_id              = aws_subnet.subnet1.id
   vpc_security_group_ids = [aws_security_group.sg-nodejs-instance.id]
 
-  monitoring = var.environment_instance_settings["PROD"].monitoring
+ // monitoring             = var.environment_instance_settings["PROD"].monitoring
+  monitoring            = var.environment_instance_settings[var.deploy_environment].monitoring
 
-  tags = {Environment = var.environment_list[0]}
+  key_name               = var.ssh_key_name
+
+  connection {
+    type        = "ssh"
+    host        = self.public_ip
+    user        = "ec2-user"
+    private_key = file(var.private_key_path)
+  }
+
+
+  //tags = {Environment = var.environment_list[0]}
+  tags = {Environment = var.environment_map[var.deploy_environment]}
 
 }
 
@@ -182,4 +205,8 @@ data "aws_ami" "aws-linux" {
 # //////////////////////////////
 output "instance-dns" {
   value = aws_instance.nodejs1.public_dns
+}
+
+output "private-dns" {
+  value = aws_instance.nodejs1.private_dns
 }

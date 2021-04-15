@@ -20,3 +20,6 @@ data "aws_ami" "aws-linux" {
     values = ["hvm"]
   }
 }
+
+data "aws_availability_zones" "available" {}
+
