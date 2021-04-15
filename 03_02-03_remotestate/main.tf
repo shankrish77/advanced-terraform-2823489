@@ -52,6 +52,8 @@ module "vpc" {
 
   enable_nat_gateway = true
   single_nat_gateway = true
+  
+  tags = "terraform_jenkins_shan"
 }
 
 
