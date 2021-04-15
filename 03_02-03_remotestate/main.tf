@@ -26,7 +26,7 @@ variable "subnet1_cidr" {
 }
 
 variable "vpc_tags" {
-  default = "environment" = "terraform-jenkins-shan"  
+  default = "environment = terraform-jenkins-shan"  
 }
 
 # //////////////////////////////
