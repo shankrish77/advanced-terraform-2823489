@@ -25,9 +25,9 @@ variable "subnet1_cidr" {
   default = "172.16.0.0/24"
 }
 
-variable "vpc_tags" {
-  default = "environment = terraform-jenkins-shan"  
-}
+#variable "vpc_tags" {
+#  default = "environment = terraform-jenkins-shan"  
+#}
 
 # //////////////////////////////
 # PROVIDERS
@@ -58,7 +58,7 @@ module "vpc" {
   single_nat_gateway = true
 
   #tags = "environment" = "terraform_jenkins_shan"
-  tags = var.vpc_tags
+  #tags = var.vpc_tags
 
 }
 
